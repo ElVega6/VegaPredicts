@@ -7,7 +7,7 @@ from google.genai import types
 st.set_page_config(page_title="Vega Predicts - AI Betting Engine", page_icon="📈", layout="centered")
 
 st.title("📈 Vega Predicts: Asistente Autónomo de Apuestas")
-st.markdown("Sistema inteligente de análisis de cuotas, cálculo de riesgo (0-100) y valor matemático (Motor Gemini optimizado).")
+st.markdown("Sistema inteligente de análisis de cuotas, cálculo de riesgo (0-100) y valor matemático (Motor Gemini).")
 
 # Carga la clave de forma segura desde los secretos de Streamlit Cloud
 try:
@@ -19,10 +19,8 @@ if not CLAVE_GEMINI:
     st.error("⚠️ Falta configurar la GEMINI_API_KEY en los Secrets de Streamlit Cloud.")
 else:
     client = genai.Client(api_key=CLAVE_GEMINI)
-    
-    fecha_actual = datetime.now().strftime("%Y-%m-%d")
 
-    system_prompt = f"""
+    system_prompt = """
     Eres Vega Predicts, un motor de inteligencia artificial experto, autónomo y ultra-estricto en análisis de apuestas deportivas (fútbol, tenis, etc.) y gestión de riesgo.
     
     DIRECTRICES DE OPERACIÓN Y CONTEXTO CRÍTICO:
@@ -39,7 +37,7 @@ else:
        - EV = (Probabilidad_Real_Decimal * Cuota_Ofrecida).
        - Si el resultado es inferior al umbral mínimo de 1.05, la apuesta no tiene valor matemático y debe advertirse claramente.
 
-    3. **FÓRMULA ÓPTIMA DE RIESGO (DE 0 A 100):**
+    3. **FÓrmULA ÓPTIMA DE RIESGO (DE 0 A 100):**
        - Calcula el índice de dificultad o riesgo de 0 a 100 aplicando esta fórmula exacta:
          Riesgo = min(100, (100 - Probabilidad_Real) * (Cuota / 1.4) * Factor_Eventos)
        - (Nota: Factor_Eventos es 1 si es una apuesta simple, o se multiplica por 1.25 por cada partido/selección extra si el usuario plantea una combinada).
@@ -58,6 +56,11 @@ else:
     if "mensajes" not in st.session_state:
         st.session_state.mensajes = []
 
+    # Botón para limpiar chat si se queda pillado por la sesión anterior
+    if st.sidebar.button("🧹 Limpiar Historial de Chat"):
+        st.session_state.mensajes = []
+        st.rerun()
+
     for mensaje in st.session_state.mensajes:
         with st.chat_message(mensaje["rol"]):
             st.markdown(mensaje["contenido"])
@@ -68,17 +71,17 @@ else:
             st.markdown(prompt_usuario)
 
         with st.chat_message("assistant"):
-            with st.spinner("Vega Predicts analizando mercados con Gemini..."):
+            with st.spinner("Vega Predicts analizando mercados..."):
                 respuesta_ia = None
                 ultimo_error = None
                 
-                # Historial optimizado para evitar desbordamientos o bloqueos por longitud
+                # Construcción limpia del historial compatible con google-genai
                 contents_historial = []
-                for m in st.session_state.mensajes[-15:]:  # Mantiene los últimos 15 intercambios limpios
-                    role_gemini = "user" if m["rol"] == "user" else "model"
+                for m in st.session_state.mensajes[-10:]: # Solo los últimos 10 para evitar bloqueos
+                    rol = "user" if m["rol"] == "user" else "model"
                     contents_historial.append(
                         types.Content(
-                            role=role_gemini,
+                            role=rol,
                             parts=[types.Part.from_text(text=m["contenido"])]
                         )
                     )
@@ -94,13 +97,15 @@ else:
                                 max_output_tokens=2048,
                             ),
                         )
-                        respuesta_ia = response.text
-                        break
+                        if response and response.text:
+                            respuesta_ia = response.text
+                            break
                     except Exception as e:
                         ultimo_error = e
-                        time.sleep(3)
+                        time.sleep(2)
+
                 if respuesta_ia:
                     st.markdown(respuesta_ia)
                     st.session_state.mensajes.append({"rol": "assistant", "contenido": respuesta_ia})
                 else:
-                    st.error(f"Error al conectar con Gemini: {ultimo_error}")
+                    st.error(f"Error de conexión con Gemini: {ultimo_error}")
