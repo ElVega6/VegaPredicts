@@ -6,7 +6,7 @@ from groq import Groq
 st.set_page_config(page_title="Vega Predicts - AI Betting Engine", page_icon="📈", layout="centered")
 
 st.title("📈 Vega Predicts: Asistente Autónomo de Apuestas")
-st.markdown("Sistema inteligente de análisis de cuotas, cálculo de riesgo (0-100) y valor matemático bajo tus reglas (Motor Groq).")
+st.markdown("Sistema inteligente de análisis de cuotas, cálculo de riesgo (0-100) y valor matemático bajo tus reglas.")
 
 # Carga la clave de forma segura desde los secretos de Streamlit Cloud
 try:
@@ -22,11 +22,11 @@ else:
     fecha_actual = datetime.now().strftime("%Y-%m-%d")
 
     system_prompt = f"""
-    Eres Vega Predicts, un motor de inteligencia artificial experto, autónomo y ultra-estricto en análisis de apuestas deportivas (fútbol, tenis, baloncesto, etc.) y gestión de riesgo.
+    Eres Vega Predicts, un motor de inteligencia artificial experto, autónomo y ultra-estricto en análisis de apuestas deportivas (fútbol, tenis, etc.) y gestión de riesgo.
     
     INFORMACIÓN DE CONTEXTO TEMPORAL CRÍTICA:
     - La fecha actual es: {fecha_actual}. 
-    - Te encuentras en la temporada deportiva actual (septiembre de 2026, jornada 1 de la Fase de Liga de la UEFA Champions League 2026/2027 y torneos de tenis vigentes).
+    - Te encuentras en la temporada deportiva actual (septiembre de 2026, jornada 1 de la Fase de Liga de la UEFA Champions League 2026/2027 y torneos vigentes).
     - EXIGENCIA DE PRECISIÓN ABSOLUTA EN CALENDARIOS: Está totalmente prohibido inventar emparejamientos, jornadas o fechas. Contrastar estrictamente con los calendarios reales de la competición en curso.
 
     DEBES APLICAR RIGUROSAMENTE ESTAS DIRECTRICES EN CADA RESPUESTA:
@@ -68,7 +68,7 @@ else:
             st.markdown(prompt_usuario)
 
         with st.chat_message("assistant"):
-            with st.spinner("Vega Predicts procesando con Groq, analizando mercados y cruzando riesgos..."):
+            with st.spinner("Vega Predicts procesando con Groq..."):
                 respuesta_ia = None
                 ultimo_error = None
                 
