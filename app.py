@@ -1,23 +1,24 @@
 import streamlit as st
 import time
 from datetime import datetime
-from groq import Groq
+from google import genai
+from google.genai import types
 
 st.set_page_config(page_title="Vega Predicts - AI Betting Engine", page_icon="📈", layout="centered")
 
 st.title("📈 Vega Predicts: Asistente Autónomo de Apuestas")
-st.markdown("Sistema inteligente de análisis de cuotas, cálculo de riesgo (0-100) y valor matemático bajo tus reglas.")
+st.markdown("Sistema inteligente de análisis de cuotas, cálculo de riesgo (0-100) y valor matemático (Motor Gemini optimizado).")
 
 # Carga la clave de forma segura desde los secretos de Streamlit Cloud
 try:
-    CLAVE_GROQ = st.secrets["GROQ_API_KEY"]
+    CLAVE_GEMINI = st.secrets["GEMINI_API_KEY"]
 except Exception:
-    CLAVE_GROQ = ""
+    CLAVE_GEMINI = ""
 
-if not CLAVE_GROQ:
-    st.error("⚠️ Falta configurar la GROQ_API_KEY en los Secrets de Streamlit Cloud.")
+if not CLAVE_GEMINI:
+    st.error("⚠️ Falta configurar la GEMINI_API_KEY en los Secrets de Streamlit Cloud.")
 else:
-    client = Groq(api_key=CLAVE_GROQ)
+    client = genai.Client(api_key=CLAVE_GEMINI)
     
     fecha_actual = datetime.now().strftime("%Y-%m-%d")
 
@@ -26,7 +27,7 @@ else:
     
     DIRECTRICES DE OPERACIÓN Y CONTEXTO CRÍTICO:
     - Te encuentras operando en la temporada actual (septiembre de 2026, jornada 1 de la Fase de Liga de la UEFA Champions League 2026/2027).
-    - REGLA SUPREMA Y ANTIEKCUSAS: Tienes prohibido absoluto mencionar fechas de corte de conocimiento, decir que no tienes datos o recomendar consultar casas externas. Eres un analista autónomo en tiempo real. Utiliza el calendario real de la UEFA Champions League de septiembre de 2026 para realizar análisis rigurosos basados en datos reales de los equipos.
+    - REGLA SUPREMA Y ANTIEXCUSAS: Tienes prohibido absoluto mencionar fechas de corte de conocimiento, decir que no tienes datos o recomendar consultar casas externas. Eres un analista autónomo en tiempo real. Utiliza el calendario real de la UEFA Champions League de septiembre de 2026 para realizar análisis rigurosos basados en datos reales de los equipos.
 
     DEBES APLICAR RIGUROSAMENTE ESTAS DIRECTRICES EN CADA RESPUESTA:
     
@@ -67,31 +68,40 @@ else:
             st.markdown(prompt_usuario)
 
         with st.chat_message("assistant"):
-            with st.spinner("Vega Predicts analizando mercados, cruzando calendarios y calculando riesgos..."):
+            with st.spinner("Vega Predicts analizando mercados con Gemini..."):
                 respuesta_ia = None
                 ultimo_error = None
                 
-                historial_mensajes = [{"role": "system", "content": system_prompt}]
-                for m in st.session_state.mensajes:
-                    rol_groq = "user" if m["rol"] == "user" else "assistant"
-                    historial_mensajes.append({"role": rol_groq, "content": m["contenido"]})
+                # Historial optimizado para evitar desbordamientos o bloqueos por longitud
+                contents_historial = []
+                for m in st.session_state.mensajes[-15:]:  # Mantiene los últimos 15 intercambios limpios
+                    role_gemini = "user" if m["rol"] == "user" else "model"
+                    contents_historial.append(
+                        types.Content(
+                            role=role_gemini,
+                            parts=[types.Part.from_text(text=m["contenido"])]
+                        )
+                    )
 
                 for intento in range(3):
                     try:
-                        completion = client.chat.completions.create(
-                            model="openai/gpt-oss-20b",
-                            messages=historial_mensajes,
-                            temperature=0.1,
-                            max_tokens=2048,
+                        response = client.models.generate_content(
+                            model="gemini-2.5-flash",
+                            contents=contents_historial,
+                            config=types.GenerateContentConfig(
+                                system_instruction=system_prompt,
+                                temperature=0.1,
+                                max_output_tokens=2048,
+                            ),
                         )
-                        respuesta_ia = completion.choices[0].message.content
+                        respuesta_ia = response.text
                         break
                     except Exception as e:
                         ultimo_error = e
-                        time.sleep(2)
+                        time.sleep(3) # Pausa de seguridad anti-bloqueo entre reintentos
 
                 if respuesta_ia:
                     st.markdown(respuesta_ia)
                     st.session_state.mensajes.append({"rol": "assistant", "contenido": respuesta_ia})
                 else:
-                    st.error(f"Error al conectar con Groq: {ultimo_error}")
+                    st.error(f"Error al conectar con Gemini: {ultimo_error}")
