@@ -61,29 +61,17 @@ else:
 
         with st.chat_message("assistant"):
             with st.spinner("Vega Predicts analizando mercado multideporte, aplicando fórmulas y calculando riesgo..."):
-                # Lista actualizada de modelos vigentes
-                modelos_disponibles = ['gemini-3.6-flash', 'gemini-2.5-flash']
-                respuesta_ia = None
-                ultimo_error = None
-
-                for mod in modelos_disponibles:
-                    try:
-                        response = client.models.generate_content(
-                            model=mod,
-                            contents=prompt_usuario,
-                            config=genai.types.GenerateContentConfig(
-                                system_instruction=system_prompt,
-                                temperature=0.2,
-                            )
+                try:
+                    response = client.models.generate_content(
+                        model='gemini-3.6-flash',
+                        contents=prompt_usuario,
+                        config=genai.types.GenerateContentConfig(
+                            system_instruction=system_prompt,
+                            temperature=0.2,
                         )
-                        respuesta_ia = response.text
-                        break 
-                    except Exception as e:
-                        ultimo_error = e
-                        continue 
-
-                if respuesta_ia:
+                    )
+                    respuesta_ia = response.text
                     st.markdown(respuesta_ia)
                     st.session_state.mensajes.append({"rol": "assistant", "contenido": respuesta_ia})
-                else:
-                    st.error(f"Error temporal en los servidores de IA. Detalle técnico: {ultimo_error}")
+                except Exception as e:
+                    st.error(f"Error al conectar con Vega Predicts: {e}")
