@@ -80,7 +80,7 @@ else:
                 for intento in range(3):
                     try:
                         completion = client.chat.completions.create(
-                            model="llama-3.1-8b-instant",
+                            model="openai/gpt-oss-20b",
                             messages=historial_mensajes,
                             temperature=0.1,
                             max_tokens=2048,
