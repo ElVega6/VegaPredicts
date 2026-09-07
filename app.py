@@ -67,18 +67,30 @@ else:
             st.markdown(prompt_usuario)
 
         with st.chat_message("assistant"):
-            with st.spinner("Vega Predicts analizando mercados, aplicando fórmulas de riesgo y construyendo selección..."):
-                try:
-                    response = client.models.generate_content(
-                        model='gemini-3.6-flash',
-                        contents=prompt_usuario,
-                        config=genai.types.GenerateContentConfig(
-                            system_instruction=system_prompt,
-                            temperature=0.1,
+            with st.spinner("Vega Predicts analizando mercados complejos, aplicando fórmulas de riesgo y construyendo selección..."):
+                # Lista de modelos que irán rotando automáticamente si el primero da error 503
+                modelos_a_probar = ['gemini-3.6-flash', 'gemini-1.5-pro']
+                respuesta_ia = None
+                ultimo_error = None
+
+                for mod in modelos_a_probar:
+                    try:
+                        response = client.models.generate_content(
+                            model=mod,
+                            contents=prompt_usuario,
+                            config=genai.types.GenerateContentConfig(
+                                system_instruction=system_prompt,
+                                temperature=0.1,
+                            )
                         )
-                    )
-                    respuesta_ia = response.text
+                        respuesta_ia = response.text
+                        break 
+                    except Exception as e:
+                        ultimo_error = e
+                        continue 
+
+                if respuesta_ia:
                     st.markdown(respuesta_ia)
                     st.session_state.mensajes.append({"rol": "assistant", "contenido": respuesta_ia})
-                except Exception as e:
-                    st.error(f"Error al conectar con Vega Predicts: {e}")
+                else:
+                    st.error(f"Error temporal de alta demanda en los servidores. Por favor, reinténtalo en unos segundos. Detalle: {ultimo_error}")
