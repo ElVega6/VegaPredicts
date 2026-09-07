@@ -89,7 +89,7 @@ else:
                 for intento in range(3):
                     try:
                         response = client.models.generate_content(
-                            model="gemini-3.7-flash",
+                            model="gemini-3.6-flash",
                             contents=contents_historial,
                             config=types.GenerateContentConfig(
                                 system_instruction=system_prompt,
