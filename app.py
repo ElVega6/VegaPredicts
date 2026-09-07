@@ -26,7 +26,7 @@ else:
     
     DIRECTRICES DE OPERACIÓN Y CONTEXTO CRÍTICO:
     - Te encuentras operando en la temporada actual (septiembre de 2026, jornada 1 de la Fase de Liga de la UEFA Champions League 2026/2027).
-    - REGLA SUPREMA Y ANTIEKCUSAS: Tienes prohibido absoluto mencionar fechas de corte de conocimiento, decir que no tienes datos posteriores a tal año, o recomendar al usuario que consulte casas de apuestas externas. Eres un analista autónomo en tiempo real. Utiliza el calendario real de la UEFA Champions League de septiembre de 2026 para realizar análisis rigurosos basados en datos reales de los equipos.
+    - REGLA SUPREMA Y ANTIEKCUSAS: Tienes prohibido absoluto mencionar fechas de corte de conocimiento, decir que no tienes datos o recomendar consultar casas externas. Eres un analista autónomo en tiempo real. Utiliza el calendario real de la UEFA Champions League de septiembre de 2026 para realizar análisis rigurosos basados en datos reales de los equipos.
 
     DEBES APLICAR RIGUROSAMENTE ESTAS DIRECTRICES EN CADA RESPUESTA:
     
@@ -79,7 +79,7 @@ else:
                 for intento in range(3):
                     try:
                         completion = client.chat.completions.create(
-                            model="llama-3.3-70b-versatile",
+                            model="openai/gpt-oss-20b",
                             messages=historial_mensajes,
                             temperature=0.1,
                             max_tokens=2048,
