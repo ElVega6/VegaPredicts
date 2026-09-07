@@ -61,17 +61,29 @@ else:
 
         with st.chat_message("assistant"):
             with st.spinner("Vega Predicts analizando mercado multideporte, aplicando fórmulas y calculando riesgo..."):
-                try:
-                    response = client.models.generate_content(
-                        model='gemini-3.6-flash',
-                        contents=prompt_usuario,
-                        config=genai.types.GenerateContentConfig(
-                            system_instruction=system_prompt,
-                            temperature=0.2,
+                # Lista de modelos a probar en orden si hay saturación (503)
+                modelos_disponibles = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash']
+                respuesta_ia = None
+                ultimo_error = None
+
+                for mod in modelos_disponibles:
+                    try:
+                        response = client.models.generate_content(
+                            model=mod,
+                            contents=prompt_usuario,
+                            config=genai.types.GenerateContentConfig(
+                                system_instruction=system_prompt,
+                                temperature=0.2,
+                            )
                         )
-                    )
-                    respuesta_ia = response.text
+                        respuesta_ia = response.text
+                        break # Si uno funciona, salimos del bucle con éxito
+                    except Exception as e:
+                        ultimo_error = e
+                        continue # Si da error 503 u otro, prueba automáticamente el siguiente modelo
+
+                if respuesta_ia:
                     st.markdown(respuesta_ia)
                     st.session_state.mensajes.append({"rol": "assistant", "contenido": respuesta_ia})
-                except Exception as e:
-                    st.error(f"Error al conectar con Vega Predicts: {e}")
+                else:
+                    st.error(f"Error temporal de alta demanda en los servidores de IA. Por favor, espera unos segundos e inténtalo de nuevo. Detalle técnico: {ultimo_error}")
