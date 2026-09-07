@@ -86,7 +86,7 @@ else:
                 for intento in range(3):
                     try:
                         response = client.models.generate_content(
-                            model="gemini-2.5-flash",
+                            model="gemini-3.7-flash",
                             contents=contents_historial,
                             config=types.GenerateContentConfig(
                                 system_instruction=system_prompt,
@@ -98,8 +98,7 @@ else:
                         break
                     except Exception as e:
                         ultimo_error = e
-                        time.sleep(3) # Pausa de seguridad anti-bloqueo entre reintentos
-
+                        time.sleep(3)
                 if respuesta_ia:
                     st.markdown(respuesta_ia)
                     st.session_state.mensajes.append({"rol": "assistant", "contenido": respuesta_ia})
