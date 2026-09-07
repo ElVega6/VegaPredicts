@@ -66,7 +66,7 @@ else:
             with st.spinner("Vega Predicts analizando mercado, aplicando fórmulas y calculando riesgo..."):
                 try:
                     response = client.models.generate_content(
-                        model='gemini-2.5-flash',
+                        model='gemini-3.6-flash',
                         contents=prompt_usuario,
                         config=genai.types.GenerateContentConfig(
                             system_instruction=system_prompt,
