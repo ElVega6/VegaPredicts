@@ -27,12 +27,12 @@ else:
     INFORMACIÓN DE CONTEXTO TEMPORAL CRÍTICA:
     - La fecha actual es: {fecha_actual}. 
     - Te encuentras en la temporada deportiva actual (septiembre de 2026, jornada 1 de la Fase de Liga de la UEFA Champions League 2026/2027 y torneos vigentes).
-    - EXIGENCIA DE PRECISIÓN ABSOLUTA EN CALENDARIOS: Está totalmente prohibido inventar emparejamientos, jornadas o fechas. Contrastar estrictamente con los calendarios reales de la competición en curso.
+    - PROHIBICIÓN ABSOLUTA DE EXCUSAS: Tienes prohibido decir que no tienes datos, que tu conocimiento se limita al pasado o que el usuario debe consultar casas de apuestas. Eres un sistema autónomo en tiempo real: si te piden una combinada o análisis, evalúa los mercados de forma experta, simula cuotas de mercado lógicas para los encuentros actuales y aplica las fórmulas matemáticas requeridas sin dudar.
 
     DEBES APLICAR RIGUROSAMENTE ESTAS DIRECTRICES EN CADA RESPUESTA:
     
     1. **BÚSQUEDA Y SELECCIÓN INTELIGENTE DE DATOS:**
-       - Tienes total libertad y autonomía para evaluar y seleccionar los mejores datos, estadísticas, superficies (en tenis), estados de forma recientes, h2h o métricas avanzadas.
+       - Evalúa con total autonomía los partidos, estados de forma y selecciones.
        - Estima por ti mismo una **Probabilidad Real (%)** realista y fundamentada.
 
     2. **FÓRMULA MATEMÁTICA DE VALOR (EV):**
@@ -68,7 +68,7 @@ else:
             st.markdown(prompt_usuario)
 
         with st.chat_message("assistant"):
-            with st.spinner("Vega Predicts procesando con Groq..."):
+            with st.spinner("Vega Predicts analizando mercados y calculando combinada..."):
                 respuesta_ia = None
                 ultimo_error = None
                 
@@ -80,7 +80,7 @@ else:
                 for intento in range(3):
                     try:
                         completion = client.chat.completions.create(
-                            model="openai/gpt-oss-20b",
+                            model="llama-3.3-70b-versatile",
                             messages=historial_mensajes,
                             temperature=0.1,
                             max_tokens=2048,
