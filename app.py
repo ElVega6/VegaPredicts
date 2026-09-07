@@ -72,17 +72,15 @@ else:
                 respuesta_ia = None
                 ultimo_error = None
                 
-                # Preparamos los mensajes para la API de Groq
                 historial_mensajes = [{"role": "system", "content": system_prompt}]
                 for m in st.session_state.mensajes:
                     rol_groq = "user" if m["rol"] == "user" else "assistant"
                     historial_mensajes.append({"role": rol_groq, "content": m["contenido"]})
 
-                # Intentamos conectar con el modelo más potente y rápido de Groq
                 for intento in range(3):
                     try:
                         completion = client.chat.completions.create(
-                            model="llama-3.3-70b-versatile",
+                            model="llama-3.1-8b-instant",
                             messages=historial_mensajes,
                             temperature=0.1,
                             max_tokens=2048,
