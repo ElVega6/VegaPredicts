@@ -61,8 +61,8 @@ else:
 
         with st.chat_message("assistant"):
             with st.spinner("Vega Predicts analizando mercado multideporte, aplicando fórmulas y calculando riesgo..."):
-                # Lista de modelos a probar en orden si hay saturación (503)
-                modelos_disponibles = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash']
+                # Lista actualizada de modelos vigentes
+                modelos_disponibles = ['gemini-3.6-flash', 'gemini-2.5-flash']
                 respuesta_ia = None
                 ultimo_error = None
 
@@ -77,13 +77,13 @@ else:
                             )
                         )
                         respuesta_ia = response.text
-                        break # Si uno funciona, salimos del bucle con éxito
+                        break 
                     except Exception as e:
                         ultimo_error = e
-                        continue # Si da error 503 u otro, prueba automáticamente el siguiente modelo
+                        continue 
 
                 if respuesta_ia:
                     st.markdown(respuesta_ia)
                     st.session_state.mensajes.append({"rol": "assistant", "contenido": respuesta_ia})
                 else:
-                    st.error(f"Error temporal de alta demanda en los servidores de IA. Por favor, espera unos segundos e inténtalo de nuevo. Detalle técnico: {ultimo_error}")
+                    st.error(f"Error temporal en los servidores de IA. Detalle técnico: {ultimo_error}")
