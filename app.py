@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 from datetime import datetime
 from google import genai
 
@@ -28,7 +29,7 @@ else:
     - Te encuentras en la temporada futbolística actual (septiembre de 2026, jornada 1 de la Fase de Liga de la UEFA Champions League 2026/2027).
     - EXIGENCIA DE PRECISIÓN ABSOLUTA EN CALENDARIOS: Está totalmente prohibido inventar emparejamientos, jornadas o fechas. Contrastar estrictamente con los calendarios reales de la competición en curso.
 
-    DEBES APLICAR RIGUROSAMENTE ESTAS DIRECTRICES EN CADA RESPUESTA:
+    DEBES APLICAR RIGUROSAMENTE ESAS DIRECTRICES EN CADA RESPUESTA:
     
     1. **BÚSQUEDA Y SELECCIÓN INTELIGENTE DE DATOS:**
        - Tienes total libertad y autonomía para evaluar y seleccionar los mejores datos, estadísticas, superficies (en tenis), estados de forma recientes, h2h o métricas avanzadas.
@@ -41,7 +42,7 @@ else:
     3. **FÓRMULA ÓPTIMA DE RIESGO (DE 0 A 100):**
        - Calcula el índice de dificultad o riesgo de 0 a 100 aplicando esta fórmula exacta:
          Riesgo = min(100, (100 - Probabilidad_Real) * (Cuota / 1.4) * Factor_Eventos)
-       - (Nota: Factor_Eventos es 1 si es una apuesta simple, o se multiplica por 1.25 por cada partido/selección extra si el usuario plantea una combinada).
+       - (Nota: Factor_Eventos es 1 si es una apuesta simple, o se multiplica por 1.25 por cada partido/sélección extra si el usuario plantea una combinada).
        - Si el número resultante supera 65, califícalo como "Riesgo Alto / No Recomendado".
 
     4. **ESTRUCTURA OBLIGATORIA DE RESPUESTA Y MULETILLAS:**
@@ -67,16 +68,15 @@ else:
             st.markdown(prompt_usuario)
 
         with st.chat_message("assistant"):
-            with st.spinner("Vega Predicts analizando mercados complejos, aplicando fórmulas de riesgo y construyendo selección..."):
-                # Lista de modelos que irán rotando automáticamente si el primero da error 503
-                modelos_a_probar = ['gemini-3.6-flash', 'gemini-1.5-pro']
+            with st.spinner("Vega Predicts procesando análisis complejo y cruzando mercados de la jornada..."):
                 respuesta_ia = None
                 ultimo_error = None
-
-                for mod in modelos_a_probar:
+                
+                # Sistema de reintentos automáticos ante saturación puntual (503)
+                for intento in range(3):
                     try:
                         response = client.models.generate_content(
-                            model=mod,
+                            model='gemini-3.6-flash',
                             contents=prompt_usuario,
                             config=genai.types.GenerateContentConfig(
                                 system_instruction=system_prompt,
@@ -84,13 +84,13 @@ else:
                             )
                         )
                         respuesta_ia = response.text
-                        break 
+                        break
                     except Exception as e:
                         ultimo_error = e
-                        continue 
+                        time.sleep(2) # Espera 2 segundos antes de reintentar automáticamente
 
                 if respuesta_ia:
                     st.markdown(respuesta_ia)
                     st.session_state.mensajes.append({"rol": "assistant", "contenido": respuesta_ia})
                 else:
-                    st.error(f"Error temporal de alta demanda en los servidores. Por favor, reinténtalo en unos segundos. Detalle: {ultimo_error}")
+                    st.error(f"Los servidores están experimentando una alta demanda muy intensa en este momento. Por favor, espera medio minuto y vuelve a enviar tu pregunta. Detalle: {ultimo_error}")
