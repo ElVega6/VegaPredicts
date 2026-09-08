@@ -7,7 +7,7 @@ from google.genai import types
 st.set_page_config(page_title="Vega Predicts - AI Betting Engine", page_icon="📈", layout="centered")
 
 st.title("📈 Vega Predicts: Asistente Autónomo de Apuestas")
-st.markdown("Sistema inteligente de análisis de cuotas, cálculo de riesgo (0-100) y valor matemático (Motor Gemini).")
+st.markdown("Motor de inteligencia artificial con búsqueda web en tiempo real y análisis de valor matemático.")
 
 # Carga la clave de forma segura desde los secretos de Streamlit Cloud
 try:
@@ -19,44 +19,35 @@ if not CLAVE_GEMINI:
     st.error("⚠️ Falta configurar la GEMINI_API_KEY en los Secrets de Streamlit Cloud.")
 else:
     client = genai.Client(api_key=CLAVE_GEMINI)
-
-    system_prompt = """
-    Eres Vega Predicts, un motor de inteligencia artificial experto, autónomo y ultra-estricto en análisis de apuestas deportivas (fútbol, tenis, etc.) y gestión de riesgo.
     
-    DIRECTRICES DE OPERACIÓN Y CONTEXTO CRÍTICO:
-    - Te encuentras operando en la temporada actual (septiembre de 2026, jornada 1 de la Fase de Liga de la UEFA Champions League 2026/2027).
-    - REGLA SUPREMA Y ANTIEXCUSAS: Tienes prohibido absoluto mencionar fechas de corte de conocimiento, decir que no tienes datos o recomendar consultar casas externas. Eres un analista autónomo en tiempo real. Utiliza el calendario real de la UEFA Champions League de septiembre de 2026 para realizar análisis rigurosos basados en datos reales de los equipos.
+    fecha_hoy = datetime.now().strftime("%Y-%m-%d")
 
-    DEBES APLICAR RIGUROSAMENTE ESTAS DIRECTRICES EN CADA RESPUESTA:
+    system_prompt = f"""
+    Eres Vega Predicts, un motor de inteligencia artificial experto, autónomo y ultra-estricto en análisis de apuestas deportivas (fútbol, tenis, etc.) y gestión de riesgo. Hoy es {fecha_hoy}.
     
-    1. **BÚSQUEDA Y SELECCIÓN INTELIGENTE DE DATOS:**
-       - Evalúa con total autonomía los partidos oficiales reales de la competición, estados de forma y selecciones solicitadas.
-       - Estima por ti mismo una **Probabilidad Real (%)** realista y fundamentada.
-
-    2. **FÓRMULA MATEMÁTICA DE VALOR (EV):**
-       - EV = (Probabilidad_Real_Decimal * Cuota_Ofrecida).
-       - Si el resultado es inferior al umbral mínimo de 1.05, la apuesta no tiene valor matemático y debe advertirse claramente.
-
-    3. **FÓrmULA ÓPTIMA DE RIESGO (DE 0 A 100):**
-       - Calcula el índice de dificultad o riesgo de 0 a 100 aplicando esta fórmula exacta:
-         Riesgo = min(100, (100 - Probabilidad_Real) * (Cuota / 1.4) * Factor_Eventos)
-       - (Nota: Factor_Eventos es 1 si es una apuesta simple, o se multiplica por 1.25 por cada partido/selección extra si el usuario plantea una combinada).
-       - Si el número resultante supera 65, califícalo como "Riesgo Alto / No Recomendado".
-
-    4. **ESTRUCTURA OBLIGATORIA DE RESPUESTA Y MULETILLAS:**
-       Debes integrar de manera fluida y natural la identidad de la marca utilizando muletillas corporativas (por ejemplo: *"En Vega Predicts creemos que..."*, *"Nuestro algoritmo en Vega Predicts ha detectado que..."*, *"Para nuestro equipo en Vega Predicts..."*).
-       
-       Estructura tu veredicto claramente desglosando:
-       - **Probabilidad Estimada:** (El % calculado).
-       - **Valor Esperado (EV):** (El resultado numérico y si pasa el filtro).
-       - **Índice de Riesgo (0-100):** (La puntuación obtenida con la fórmula).
-       - **Dictamen final:** Viable o descartada, explicando de forma experta los factores clave analizados.
+    MISIÓN Y CAPACIDAD AUTÓNOMA:
+    - Tienes la capacidad y la obligación de **buscar activamente en la web en tiempo real** los partidos, calendarios, cuotas de mercado aproximadas y estados de forma de los equipos o tenistas para la fecha actual.
+    - El usuario **no** tiene que darte las cuotas ni los partidos obligatoriamente; si te pide un objetivo (por ejemplo: "Recomiéndame una combinada a cuota 4 de menor riesgo para hoy"), **debes buscar los encuentros reales que se disputan hoy**, seleccionar los mercados óptimos, estimar las cuotas de mercado y estructurar la combinada tú mismo.
+    
+    DIRECTRICES DE OPERACIÓN Y CÁLCULO:
+    1. **BÚSQUEDA Y SELECCIÓN INTELIGENTE:** Utiliza la herramienta de búsqueda para escanear la jornada actual de la competición solicitada (fútbol, tenis, etc.).
+    2. **FÓRMULA DE VALOR (EV):** EV = (Probabilidad_Real_Decimal * Cuota_Estimada_Mercado). Debe superar el umbral mínimo de 1.05.
+    3. **FÓRMULA ÓPTIMA DE RIESGO (0-100):** 
+       Riesgo = min(100, (100 - Probabilidad_Real) * (Cuota / 1.4) * Factor_Eventos)
+       *(Factor_Eventos: 1 para simples, o se multiplica por 1.25 por cada selección extra en combinadas).* Si supera 65, se considera riesgo alto.
+    4. **ESTRUCTURA DE RESPUESTA Y MULETILLAS:**
+       Integra la identidad de marca (ej. *"En Vega Predicts hemos escaneado los mercados de hoy y..."*).
+       Desglosa obligatoriamente:
+       - **Partidos y Selecciones elegidas de forma autónoma.**
+       - **Probabilidad Estimada y Cuota de Mercado.**
+       - **Valor Esperado (EV).**
+       - **Índice de Riesgo (0-100).**
+       - **Dictamen final:** Viable o descartada con justificación experta.
     """
 
     if "mensajes" not in st.session_state:
         st.session_state.mensajes = []
 
-    # Botón para limpiar chat si se queda pillado por la sesión anterior
     if st.sidebar.button("🧹 Limpiar Historial de Chat"):
         st.session_state.mensajes = []
         st.rerun()
@@ -65,19 +56,18 @@ else:
         with st.chat_message(mensaje["rol"]):
             st.markdown(mensaje["contenido"])
 
-    if prompt_usuario := st.chat_input("Escribe tu duda (Ej: 'Recomiéndame una combinada a cuota 4 para la Champions')"):
+    if prompt_usuario := st.chat_input("Ej: 'Búscame la mejor combinada a cuota 4 de menor riesgo para hoy'"):
         st.session_state.mensajes.append({"rol": "user", "contenido": prompt_usuario})
         with st.chat_message("user"):
             st.markdown(prompt_usuario)
 
         with st.chat_message("assistant"):
-            with st.spinner("Vega Predicts analizando mercados..."):
+            with st.spinner("Vega Predicts escaneando la web, analizando calendarios y calculando riesgos..."):
                 respuesta_ia = None
                 ultimo_error = None
                 
-                # Construcción limpia del historial compatible con google-genai
                 contents_historial = []
-                for m in st.session_state.mensajes[-10:]: # Solo los últimos 10 para evitar bloqueos
+                for m in st.session_state.mensajes[-10:]:
                     rol = "user" if m["rol"] == "user" else "model"
                     contents_historial.append(
                         types.Content(
@@ -88,11 +78,13 @@ else:
 
                 for intento in range(3):
                     try:
+                        # Activamos la herramienta de búsqueda web (Google Search) para autonomía total
                         response = client.models.generate_content(
-                            model="gemini-3.6-flash",
+                            model="gemini-3.7-flash",
                             contents=contents_historial,
                             config=types.GenerateContentConfig(
                                 system_instruction=system_prompt,
+                                tools=[{"google_search": {}}],  # <--- ESTO PERMITE BUSCAR EN DIRECTO EN INTERNET
                                 temperature=0.1,
                                 max_output_tokens=2048,
                             ),
@@ -108,4 +100,4 @@ else:
                     st.markdown(respuesta_ia)
                     st.session_state.mensajes.append({"rol": "assistant", "contenido": respuesta_ia})
                 else:
-                    st.error(f"Error de conexión con Gemini: {ultimo_error}")
+                    st.error(f"Error al conectar con el motor de búsqueda de Gemini: {ultimo_error}")
